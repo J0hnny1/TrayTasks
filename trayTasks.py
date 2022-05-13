@@ -12,6 +12,7 @@ import PySimpleGUIQt as sg
 
 global defaultTaskListID
 
+
 def createService():
     SCOPES = ['https://www.googleapis.com/auth/tasks']
     creds = None
@@ -36,7 +37,6 @@ def createService():
     service = build('tasks', 'v1', credentials=creds)
 
 
-
 def printTaskLists():
     results = service.tasklists().list(maxResults=5).execute()
     global items
@@ -52,8 +52,7 @@ def printTaskLists():
     global defaultTaskListID
     defaultTaskListID = tasklistIds[0]
 
-        
-    #debugging
+    # debugging
     if not items:
         print('No task lists found.')
     else:
@@ -77,87 +76,89 @@ def printTasks():
             if item['status'] == "needsAction":
                 taskNames.append(item['title'])
                 taskIDs.append(item['id'])
-    
-    
-    
 
-        
-    #debugging
-    #if not items:
+    if not taskNames:
+        taskNames.append("No Tasks")
+    # debugging
+    # if not items:
     #    print('No task lists found.')
-    #else:
+    # else:
     #    print('Task lists:')
     #    for item in items:
     #        print(u'{0} ({1})'.format(item['title'], item['id']))
 
 
-#def createTray():
-#    global menu_def
-#    menu_def = ['My Menu Def', ['Task Lists', [taskListNames], taskNames,'Print Tasks', 'Exit']]
-#    global tray
-#    tray = sg.SystemTray(menu=menu_def, filename='/home/jonathan/Applications/Icons/display-brightness-medium-symbolic.svg')
 
 def updateTray():
+    printTasks()
+    menu_def2 = ['My Menu Def', [taskNames, '---', 'Task Lists',[taskListNames], 'Refresh', 'Add Tasks', 'Exit']]
     tray.Update(menu=menu_def2)
-    menu_item2 = tray.read()
+
+
+def createWindow():
+    sg.theme('Material2')
+    layout = [[sg.Text('Enter Task Name')],[sg.Input()],[sg.Text('Enter Task Notes')],[sg.Input()], [sg.CalendarButton(button_text="Select Date")],[sg.OK()] ]
+    global window
+    window = sg.Window('Enter a number example', layout)
+
+    event, values = window.read()
+    global newTaskName, newTaskNotes
+    newTaskName = values[0]
+    newTaskNotes = values[1]
+    #date = values[2]
+    #print(date)
+    window.close()
+
+    b = values[0]
+    if b == "":
+        sg.popup_ok_cancel('Task needs a name')
+        #sg.popup_error(title="Missing Task Name")
+    else:
+        service.tasks().insert(tasklist=defaultTaskListID, body={'title': values[0], 'notes': values[1]}).execute()
+
 
 createService()
-
-    
 
 printTaskLists()
 printTasks()
 
-menu_def = ['My Menu Def', [taskNames,'---','Task Lists', [taskListNames], 'Print Tasks','Debug 1', 'Exit']]
-menu_def2 = ['My Menu Def', ['Task Lists', [taskListNames], taskNames,'Print Tasks','Debug 1','Debug 2', 'Exit']]
-#global tray
-tray = sg.SystemTray(menu=menu_def, data_base64=sg.DEFAULT_BASE64_ICON)
+menu_def = ['My Menu Def', [taskNames, '---', 'Task Lists',[taskListNames], 'Refresh', 'Add Tasks', 'Exit']]
+tray = sg.SystemTray(menu=menu_def)
 
-
-#tray.Close()
-
-def whileLoop():
-    global update
-    update = False
-    while update == False:  # The event loop
-        menu_item = tray.read()
-        # print(menu_item)
+global update
+update = False
+while update == False:  # The event loop
+    menu_item = tray.read()
     
-
-        for i in range(len(taskListNames)):
-            if menu_item == taskListNames[i]:
-                defaultTaskListID = tasklistIds[i]
-                # printTasks()
-                #print(defaultTaskListID)
-            
-
-
-        if menu_item == 'Exit':
-            break
-        elif menu_item == 'Print Tasks':
-            printTasks()
-            print(taskNames)
-        elif menu_item == 'Debug 1':
-            sg.SystemTray.Hide(self=tray)
-            #update = True
-            #updateTray()
+    #if windowExists == True:
+    #    event, values = window.read()
         
+
+    for i in range(len(taskListNames)):
+        if menu_item == taskListNames[i]:
+            defaultTaskListID = tasklistIds[i]
+            updateTray()
+
+    for i in range(len(taskNames)):
+        if not taskNames[i]:
+            print("NO tasks")
+        elif menu_item == taskNames[i]:
+            taskID = taskIDs[i]
+            print(taskIDs[i])
+            service.tasks().update(tasklist=defaultTaskListID, task=taskIDs[i], body={'status': 'completed', 'id': taskIDs[i]}).execute()
+            updateTray()
+
+    if menu_item == 'Exit':
+        break
+    elif menu_item == 'Refresh':
+        updateTray()
         
-        #
-        #tray = sg.SystemTray(menu=menu_def, data_base64=sg.DEFAULT_BASE64_ICON)
-
-first = True
-if first == True:
-    whileLoop()
-
-
-if update == True:
-        tray.Update(menu=menu_def2)
-        sg.SystemTray.Update(menu=menu_def2)
-        print("update?")
-        update = False
-        whileLoop()
+    elif menu_item == 'Add Tasks':
+        createWindow()
+        #name = sg.PopupGetText
+        #name = sg.PopupGetText(message="Enter Task Name")
+        #print(newTaskName)
+        #print(newTaskNotes)
+        #updateTray()
 
 
-
-        

@@ -63,7 +63,7 @@ def main():
     # service.tasklists().delete(tasklist='ZTRydkwzXzVvenZidVh1WA').execute()
 
     # add task
-    #service.tasks().insert(tasklist='ZUdyVV94ZmZPbmxqX05GaQ', body={'title': 'Tomodachi Game', 'notes': 'fake squid game', 'due': '2022-05-05T12:20:02.52Z'}).execute()
+    service.tasks().insert(tasklist='ZUdyVV94ZmZPbmxqX05GaQ', body={'title': 'Tomodachi Game', 'notes': 'fake squid game', 'due': '2022-05-05T12:20:02.52Z'}).execute()
     # 2022-05-05T00:00:00.000Z
 
     
