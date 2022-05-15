@@ -15,26 +15,24 @@ global defaultTaskListID
 
 def createService():
     SCOPES = ['https://www.googleapis.com/auth/tasks']
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
+    credentials = None
+
     if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        credentials = Credentials.from_authorized_user_file('token.json', SCOPES)
     # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+    if not credentials or not credentials.valid:
+        if credentials and credentials.expired and credentials.refresh_token:
+            credentials.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
+            credentials = flow.run_local_server(port=0)
+
         with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+            token.write(credentials.to_json())
 
     global service
-    service = build('tasks', 'v1', credentials=creds)
+    service = build('tasks', 'v1', credentials=credentials)
 
 
 def printTaskLists():
@@ -79,13 +77,7 @@ def printTasks():
 
     if not taskNames:
         taskNames.append("No Tasks")
-    # debugging
-    # if not items:
-    #    print('No task lists found.')
-    # else:
-    #    print('Task lists:')
-    #    for item in items:
-    #        print(u'{0} ({1})'.format(item['title'], item['id']))
+
 
 
 
@@ -111,8 +103,8 @@ def createWindow():
 
     b = values[0]
     if b == "":
-        sg.popup_ok_cancel('Task needs a name')
-        #sg.popup_error(title="Missing Task Name")
+        #sg.popup_ok_cancel('Task needs a name')
+        sg.popup_error(title="Missing Task Name")
     else:
         service.tasks().insert(tasklist=defaultTaskListID, body={'title': values[0], 'notes': values[1]}).execute()
 
@@ -123,16 +115,13 @@ printTaskLists()
 printTasks()
 
 menu_def = ['My Menu Def', [taskNames, '---', 'Task Lists',[taskListNames], 'Refresh', 'Add Tasks', 'Exit']]
-tray = sg.SystemTray(menu=menu_def)
+tray = sg.SystemTray(menu=menu_def,filename="check-mark-8-256.png")
 
 global update
 update = False
 while update == False:  # The event loop
     menu_item = tray.read()
     
-    #if windowExists == True:
-    #    event, values = window.read()
-        
 
     for i in range(len(taskListNames)):
         if menu_item == taskListNames[i]:
@@ -155,10 +144,5 @@ while update == False:  # The event loop
         
     elif menu_item == 'Add Tasks':
         createWindow()
-        #name = sg.PopupGetText
-        #name = sg.PopupGetText(message="Enter Task Name")
-        #print(newTaskName)
-        #print(newTaskNotes)
-        #updateTray()
 
 
