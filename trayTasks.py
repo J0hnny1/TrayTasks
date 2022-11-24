@@ -83,17 +83,17 @@ def printTasks():
         taskNames.append("No Tasks")
 
 
-
+"""
 
 def updateTray():
     #printTasks()
-    menu_def2 = ['My Menu Def', [taskNames, '---', 'Task Lists',[taskListNames], 'Refresh', 'Add Tasks', 'Exit']]
+    menu_def2 = ['My Menu Def', [taskNames, '---', 'Task Lists', [taskListNames], 'Refresh', 'Add Tasks', 'Exit']]
     tray.Update(menu=menu_def2)
 
 
 def createWindow():
     sg.theme('Material2')
-    layout = [[sg.Text('Enter Name')],[sg.Input()],[sg.Text('Enter Task Notes')],[sg.Input()], [sg.Text('Date (DD.MM)')],[sg.Input()],[sg.OK()]]
+    layout = [[sg.Text('Enter Name')], [sg.Input()], [sg.Text('Enter Task Notes')], [sg.Input()], [sg.Text('Date (DD.MM)')],[sg.Input()],[sg.OK()]]
     global window
     window = sg.Window('Create Task / TaskList', layout)
 
@@ -157,5 +157,5 @@ while update == False:  # The event loop
         createWindow()
         printTasks()
         updateTray()
-
+"""
 
