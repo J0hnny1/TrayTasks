@@ -72,8 +72,12 @@ def printTasks():
         taskNames = []
         for item in itemsTasks:
             if item['status'] == "needsAction":
-                taskNames.append(item['title'])
-                taskIDs.append(item['id'])
+                if item['title'] == "":
+                    taskListNames.append("Nameless Task")
+                    taskIDs.append(item['id'])
+                else:
+                    taskNames.append(item['title'])
+                    taskIDs.append(item['id'])
 
     if not taskNames:
         taskNames.append("No Tasks")
@@ -82,16 +86,16 @@ def printTasks():
 
 
 def updateTray():
-    printTasks()
+    #printTasks()
     menu_def2 = ['My Menu Def', [taskNames, '---', 'Task Lists',[taskListNames], 'Refresh', 'Add Tasks', 'Exit']]
     tray.Update(menu=menu_def2)
 
 
 def createWindow():
     sg.theme('Material2')
-    layout = [[sg.Text('Enter Task Name')],[sg.Input()],[sg.Text('Enter Task Notes')],[sg.Input()], [sg.CalendarButton(button_text="Select Date")],[sg.OK()] ]
+    layout = [[sg.Text('Enter Name')],[sg.Input()],[sg.Text('Enter Task Notes')],[sg.Input()], [sg.Text('Date (DD.MM)')],[sg.Input()],[sg.OK()]]
     global window
-    window = sg.Window('Enter a number example', layout)
+    window = sg.Window('Create Task / TaskList', layout)
 
     event, values = window.read()
     global newTaskName, newTaskNotes
@@ -126,23 +130,32 @@ while update == False:  # The event loop
     for i in range(len(taskListNames)):
         if menu_item == taskListNames[i]:
             defaultTaskListID = tasklistIds[i]
+            printTaskLists()
             updateTray()
 
     for i in range(len(taskNames)):
-        if not taskNames[i]:
-            print("NO tasks")
-        elif menu_item == taskNames[i]:
+        #if taskNames[i]== "":
+        #    print("No tasks")
+        #if not taskNames[i]:
+        #    print("No tasks")
+        if menu_item == taskNames[i]:
             taskID = taskIDs[i]
             print(taskIDs[i])
-            service.tasks().update(tasklist=defaultTaskListID, task=taskIDs[i], body={'status': 'completed', 'id': taskIDs[i]}).execute()
+            service.tasks().update(tasklist=defaultTaskListID, task=taskIDs[i], body={'status': 'completed', 'id': taskIDs[i], 'title':taskNames[i]}).execute()
+            printTasks()
             updateTray()
+            break 
 
     if menu_item == 'Exit':
         break
     elif menu_item == 'Refresh':
+        printTaskLists()
+        printTasks()
         updateTray()
         
     elif menu_item == 'Add Tasks':
         createWindow()
+        printTasks()
+        updateTray()
 
 
