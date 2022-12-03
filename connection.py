@@ -1,10 +1,10 @@
 import os.path
-from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
-
+global defaultTaskListID
 
 def createService():
     SCOPES = ['https://www.googleapis.com/auth/tasks']
@@ -29,7 +29,7 @@ def createService():
     return service
 
 
-def printTaskLists(tasklists_dict=None):
+def getTaskListsFromAPI(tasklists_dict=None):
     results = service.tasklists().list(maxResults=5).execute()
     global items
     items = results.get('items', [])
@@ -57,43 +57,43 @@ def printTaskLists(tasklists_dict=None):
     return tasklists_dict
 
 
-def printTasks(tasks_dict=None):
+def getTasksFromAPI(fromTaskList, tasks_dict=None):
+    global defaultTaskListID
+    results = service.tasks().list(tasklist=fromTaskList).execute()
+    global itemsTasks
 
-    if not defaultTaskListID:
-        print("Select Task list")
-    else:
-        results = service.tasks().list(tasklist=defaultTaskListID).execute()
-        global itemsTasks
+    itemsTasks = results.get('items', [])
+    global taskIDs
+    taskIDs = []
+    global taskNames
+    taskNames = []
 
-        itemsTasks = results.get('items', [])
-        global taskIDs
-        taskIDs = []
-        global taskNames
-        taskNames = []
+    for item in itemsTasks:
+        if item['status'] == "needsAction":
+            if item['title'] == "":
+                taskListNames.append("Nameless Task")
+                taskIDs.append(item['id'])
+            else:
+                tasks_dict = {
+                    item['title']: item['id']
+                }
+                taskNames.append(item['title'])
+                taskIDs.append(item['id'])
 
-        for item in itemsTasks:
-            if item['status'] == "needsAction":
-                if item['title'] == "":
-                    taskListNames.append("Nameless Task")
-                    taskIDs.append(item['id'])
-                else:
-                    tasks_dict = {
-                        item['title']: item['id']
-                    }
-                    taskNames.append(item['title'])
-                    taskIDs.append(item['id'])
-
-        for i in range(len(taskNames)):
-            tasks_dict[taskNames[i]] = taskIDs[i]
+    for i in range(len(taskNames)):
+        tasks_dict[taskNames[i]] = taskIDs[i]
 
     return tasks_dict
 
 
 def setDefTaskList(tasklist_set):
-    global defaultTaskListID
+    global defaultTaskListID 
     defaultTaskListID = tasklist_set
 
+def getDefTaskList():
+    global defaultTaskListID
+    return defaultTaskListID
 
-# def finishTask():
-   # service.tasks().update(tasklist=defaultTaskListID, task=tasks.get(p),
-   #                        body={'status': 'completed', 'id': tasks.get(p), 'title': p}).execute()
+def finishTask(task_id, task_title, task_list):
+ service.tasks().update(tasklist=task_list, task=task_id,
+                        body={'status': 'completed', 'id': task_id, 'title': task_title}).execute()

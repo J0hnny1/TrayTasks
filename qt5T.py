@@ -3,32 +3,75 @@ from PyQt6.QtWidgets import *
 import qdarktheme
 from connection import *
 
+# create api service and get tasks / lists
 service = createService()
-task_lists = printTaskLists()
-# print("lists: ")
-# print(task_lists)
+task_lists = getTaskListsFromAPI()
 default_list = list(task_lists.values())[0]
-# print("Def: " + default_list)
-tasks = printTasks()
+tasks = getTasksFromAPI(default_list)
+# debugging
 print(tasks)
 
+# print lists to menus
 def updateTasklists():
+    task_lists = getTaskListsFromAPI()
     for item in task_lists.keys():
         action = tasklistsMenu.addAction(item)
         action.triggered.connect(
-            lambda chk, item=item: taskPressed(item))
+            lambda chk, item=item: taskListPressed(item))
 
 
 def updateTasks():
-    for item in tasks.keys():
-        action = tasksMenu.addAction(item)
-        action.triggered.connect(
+    tasks = getTasksFromAPI(default_list)
+    if not tasks:
+        no = QAction("No Tasks")
+        tasksMenu.addAction(no)
+    else:
+        for item in tasks.keys():
+            action = tasksMenu.addAction(item)
+            action.triggered.connect(
             lambda chk, item=item: taskPressed(item))
 
 
-# create service
+def taskPressed(item):
+    print(item)
+    print(tasks.get(item))
+    # print(thisdict.get(p))
+    finishTask(tasks.get(item), item, default_list)
+
+    getTasksFromAPI(default_list)
+    refreshMenu()
+   # addControlsToMenu()
+
+def taskListPressed(item):
+    print("TaskList Pressed: " + task_lists.get(item))
+    global default_list
+    default_list = task_lists.get(item)
+    refreshMenu()
+
+def addControlsToMenu():
+    tasksMenu.addSeparator()
+    tasksMenu.addMenu(tasklistsMenu)
+
+    # refresh
+    refresh.triggered.connect(lambda: refreshMenu())
+    tasksMenu.addAction(refresh)
+    
+    # To quit the app
+    quit.triggered.connect(app.quit)
+    tasksMenu.addAction(quit)
+
+def refreshMenu():
+    print("Def T ID: " + default_list)
+    tasksMenu.clear()
+    tasklistsMenu.clear()
+
+    updateTasklists()
+    updateTasks()
+    addControlsToMenu()
+   
 
 
+# create application
 app = QApplication([])
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarktheme.load_stylesheet())
@@ -45,47 +88,25 @@ tray.setVisible(True)
 tasksMenu = QMenu()
 tasklistsMenu = QMenu()
 tasklistsMenu.setTitle("Tasklists")
-# menu.addSeparator()
-
-lists = QListView()
-
-createService()
-printTaskLists()
-updateTasklists()
-printTasks(default_list)
-updateTasks()
-
-
-
-testItems = ['itemA', 'itemB', 'itemC']
-
-
-def taskPressed(p):
-    print(p)
-    print(tasks.get((p)))
-    # print(thisdict.get(p))
-    finishTask()
-
-    printTasks()
-    updateTasks()
-
-
-for item in testItems:
-    action = tasksMenu.addAction(item)
-    action.triggered.connect(
-        lambda chk, item=item: taskPressed(item))
-
-tasksMenu.addSeparator()
-tasksMenu.addMenu(tasklistsMenu)
+# Control Options
 refresh = QAction("Refresh")
+quit = QAction("Quit")
+# print tasks and lists to menu
+# updateTasklists()
+# updateTasks()
 
+refreshMenu()
+
+"""
+refresh = QAction("Refresh")
+refresh.triggered.connect(lambda: refreshMenu())
 tasksMenu.addAction(refresh)
 # To quit the app
 quit = QAction("Quit")
 quit.triggered.connect(app.quit)
 tasksMenu.addAction(quit)
 
-# Adding options to the System Tray
-tray.setContextMenu(tasksMenu)
+"""
 
+tray.setContextMenu(tasksMenu)
 app.exec()
