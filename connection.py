@@ -97,3 +97,11 @@ def getDefTaskList():
 def finishTask(task_id, task_title, task_list):
  service.tasks().update(tasklist=task_list, task=task_id,
                         body={'status': 'completed', 'id': task_id, 'title': task_title}).execute()
+
+
+def addNewTaskToAPI(task_title, task_list, task_notes=None, due_date=None):
+    print(task_title)
+    print(task_list)
+    print(task_notes)
+    print(due_date)
+    service.tasks().insert(tasklist=task_list, body={'title': task_title, 'notes': task_notes, 'due':due_date}).execute()
